@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>远程控制中心</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
+        button { padding: 15px 30px; margin: 10px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; }
+        #enableBtn { background-color: #28a745; color: white; }
+        #disableBtn { background-color: #dc3545; color: white; }
+        #status { margin-top: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>远程控制中心</h1>
+    <button id="enableBtn">开启防护</button>
+    <button id="disableBtn">关闭防护</button>
+    <div id="status">加载设备状态中...</div>
+
+    <script>
+        const CMD_URL = "cmd.json";
+        const STATUS_URL = "status.json";
+
+        function sendAction(action) {
+            fetch(CMD_URL, {
+                method: 'POST',
+                body: JSON.stringify({ global_action: action, timestamp: new Date().toISOString() })
+            }).then(() => alert("指令已下发：" + action));
+        }
+
+        function refreshStatus() {
+            fetch(STATUS_URL)
+                .then(r => r.json())
+                .then(data => {
+                    let html = "<h3>在线设备：</h3>";
+                    data.devices.forEach(dev => {
+                        html += `<p>设备ID: ${dev.id} | 状态: ${dev.state} | 最后在线: ${dev.time}</p>`;
+                    });
+                    document.getElementById("status").innerHTML = html;
+                });
+        }
+
+        document.getElementById("enableBtn").onclick = () => sendAction("enable");
+        document.getElementById("disableBtn").onclick = () => sendAction("disable");
+        setInterval(refreshStatus, 5000);
+        refreshStatus();
+    </script>
+</body>
+</html>
