@@ -2,48 +2,70 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>远程控制中心</title>
+    <title>AntiDeleteProtect 控制中心</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
-        button { padding: 15px 30px; margin: 10px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; }
-        #enableBtn { background-color: #28a745; color: white; }
-        #disableBtn { background-color: #dc3545; color: white; }
-        #status { margin-top: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; text-align: left; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        h1 { color: #ff2a2a; }
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #enableBtn { background-color: #ff2a2a; color: white; }
+        #disableBtn { background-color: #444; color: white; }
+        pre {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        #copyBtn { background-color: #007bff; color: white; }
     </style>
 </head>
 <body>
-    <h1>远程控制中心</h1>
-    <button id="enableBtn">开启防护</button>
-    <button id="disableBtn">关闭防护</button>
-    <div id="status">加载设备状态中...</div>
+    <h1>AntiDeleteProtect 控制中心</h1>
+    <button id="enableBtn">生成【开启防护】指令</button>
+    <button id="disableBtn">生成【关闭防护】指令</button>
+    <pre id="cmdOutput">指令会显示在这里，复制后去修改 cmd.json 文件</pre>
+    <button id="copyBtn">复制指令到剪贴板</button>
 
     <script>
-        const CMD_URL = "cmd.json";
-        const STATUS_URL = "status.json";
+        const enableCmd = `{"global_action":"enable","timestamp":"${new Date().toISOString()}"}`;
+        const disableCmd = `{"global_action":"disable","timestamp":"${new Date().toISOString()}"}`;
+        let currentCmd = "";
 
-        function sendAction(action) {
-            fetch(CMD_URL, {
-                method: 'POST',
-                body: JSON.stringify({ global_action: action, timestamp: new Date().toISOString() })
-            }).then(() => alert("指令已下发：" + action));
-        }
+        document.getElementById("enableBtn").onclick = () => {
+            currentCmd = enableCmd;
+            document.getElementById("cmdOutput").textContent = enableCmd;
+        };
 
-        function refreshStatus() {
-            fetch(STATUS_URL)
-                .then(r => r.json())
-                .then(data => {
-                    let html = "<h3>在线设备：</h3>";
-                    data.devices.forEach(dev => {
-                        html += `<p>设备ID: ${dev.id} | 状态: ${dev.state} | 最后在线: ${dev.time}</p>`;
-                    });
-                    document.getElementById("status").innerHTML = html;
-                });
-        }
+        document.getElementById("disableBtn").onclick = () => {
+            currentCmd = disableCmd;
+            document.getElementById("cmdOutput").textContent = disableCmd;
+        };
 
-        document.getElementById("enableBtn").onclick = () => sendAction("enable");
-        document.getElementById("disableBtn").onclick = () => sendAction("disable");
-        setInterval(refreshStatus, 5000);
-        refreshStatus();
+        document.getElementById("copyBtn").onclick = () => {
+            if (currentCmd) {
+                navigator.clipboard.writeText(currentCmd);
+                alert("已复制！去 GitHub 仓库修改 cmd.json，把内容替换成复制的指令即可");
+            } else {
+                alert("请先生成指令");
+            }
+        };
     </script>
 </body>
 </html>
+
